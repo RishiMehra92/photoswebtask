@@ -1,9 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:debounce_throttle/debounce_throttle.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'FullScreenImage.dart';
@@ -11,8 +9,8 @@ import 'controller/ImageController.dart';
 import 'model/ImagesModel.dart';
 
 class GalleryPage extends StatelessWidget {
-  final ScrollController _scrollController = ScrollController();
-  final Debouncer _debouncer =
+  final ScrollController scrollController = ScrollController();
+  final Debouncer debouncer =
       Debouncer(const Duration(milliseconds: 500), initialValue: '');
 
   late ImageController imageController;
@@ -21,14 +19,13 @@ class GalleryPage extends StatelessWidget {
   Widget build(BuildContext context) {
     imageController = Get.put(ImageController());
 
-    _scrollController.addListener(() {
-      if (_scrollController.position.pixels ==
-          _scrollController.position.maxScrollExtent) {
+    scrollController.addListener(() {
+      if (scrollController.position.pixels == scrollController.position.maxScrollExtent) {
         imageController.loadImages();
       }
     });
     imageController.searchController.addListener(() {
-      _debouncer.onChanged!(() {
+      debouncer.onChanged!(() {
         imageController.page = 1;
         imageController.images = <Hits>[].obs;
         imageController.loadImages();
@@ -107,15 +104,13 @@ class GalleryPage extends StatelessWidget {
                 imageController.images.isNotEmpty
                     ? Expanded(
                         child: GridView.builder(
-                          controller: _scrollController,
+                          controller: scrollController,
                           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount:
-                                MediaQuery.of(context).size.width ~/ 200,
+                            crossAxisCount: MediaQuery.of(context).size.width ~/ 200,
                             crossAxisSpacing: 4.0,
                             mainAxisSpacing: 4.0,
                           ),
                           itemCount: imageController.images.length + 1,
-                          // +1 for loading indicator
                           itemBuilder: (context, index) {
                             if (index < imageController.images.length) {
                               final image = imageController.images[index];
@@ -125,27 +120,28 @@ class GalleryPage extends StatelessWidget {
                                     context,
                                     MaterialPageRoute(
                                       builder: (_) => FullScreenImage(
-                                          imageUrl:
-                                              image.webformatURL.toString()),
+                                        imageUrl: image.webformatURL.toString(),
+                                      ),
                                     ),
                                   );
                                 },
                                 child: Stack(
                                   children: [
-                                  AspectRatio(
-                                  aspectRatio: 1.0, // 1:1 aspect ratio (square)
-                                  child:CachedNetworkImage(
-                                      imageUrl: image.webformatURL.toString(),
-                                      fit: BoxFit.fill,
-                                    )),
+                                    AspectRatio(
+                                      aspectRatio: 1.0,
+                                      child: CachedNetworkImage(
+                                        imageUrl: image.webformatURL.toString(),
+                                        fit: BoxFit.fill,
+                                      ),
+                                    ),
                                     Positioned(
-                                      bottom:0,
+                                      bottom: 0,
                                       left: 0,
                                       right: 0,
                                       child: Container(
                                         padding: const EdgeInsets.all(8.0),
                                         decoration: BoxDecoration(
-                                          color: Colors.grey.shade50
+                                          color: Colors.grey.shade50,
                                         ),
                                         child: Center(child: Text('Likes: ${image.likes} Views: ${image.views}')),
                                       ),
@@ -154,11 +150,15 @@ class GalleryPage extends StatelessWidget {
                                 ),
                               );
                             } else {
-                              return  (const Text(""));
+                              // This is the last item, return a loading indicator
+                              return const Center(
+                                child: CircularProgressIndicator(),
+                              );
                             }
                           },
                         ),
-                      )
+
+                )
                     :   Padding(
                       padding: const EdgeInsets.only(top:80.0),
                       child: Center(

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dashboard/GalleryPage.dart';
 
-
 void main() {
   runApp(MyApp());
 }
